@@ -41,4 +41,4 @@ while True:
         break
     memory = follow_conversation(user_text=user_input, memory=memory, mem_size=10, model="gpt-3.5-turbo")
 
-json.dump(memory, open("mem.json", "w", encoding="utf-8"), ensure_ascii=False)
+json.dump(memory, open("mem.json", "w", encoding="utf-8"), ensure_ascii=False, indent=4)
