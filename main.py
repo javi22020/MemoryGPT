@@ -3,7 +3,7 @@ import tiktoken
 import json
 client = openai.OpenAI()
 
-assistant_prompt = "You are a helpful assistant"
+assistant_prompt = "Eres un asistente de programación. Devuelve tus respuestas en Markdown, con bloques de código si es necesario, y responde todas las peticiones del usuario."
 def join_messages(memory: list[dict]):
     text = ""
     for m in memory:
@@ -23,7 +23,7 @@ def follow_conversation(user_text: str, memory: list[dict], mem_size: int, model
     if ind == 0:
         memory = [{"role": "system", "content": assistant_prompt}]
     memory.append({"role": "user", "content": user_text})
-    while not check_under_context_limit(join_messages(memory), 4096, model) and ind > 1:
+    while not check_under_context_limit(join_messages(memory), 128000, "gpt-3.5-turbo") and ind > 1:
         ind -= 1
     resp = client.chat.completions.create(
         model=model,
@@ -31,14 +31,18 @@ def follow_conversation(user_text: str, memory: list[dict], mem_size: int, model
     )
     tr = resp.choices[0].message.content
     memory.append({"role": "assistant", "content": tr})
-    print(resp.choices[0].message.content)
+    open("respuestas.md", "a", encoding="utf-8").write(tr)
+    print(tr)
     return memory
 
+prompt = open("prompt.txt", "r").read()
 memory = []
 while True:
-    user_input = input(">> ")
+    user_input = input(">> ").strip()
     if user_input == "Exit":
         break
-    memory = follow_conversation(user_text=user_input, memory=memory, mem_size=10, model="gpt-3.5-turbo")
+    elif user_input == "Prompt":
+        user_input = prompt
+    memory = follow_conversation(user_text=user_input, memory=memory, mem_size=10, model="gpt-4-1106-preview")
 
 json.dump(memory, open("mem.json", "w", encoding="utf-8"), ensure_ascii=False, indent=4)
